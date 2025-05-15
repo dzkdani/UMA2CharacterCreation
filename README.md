@@ -1,2 +1,2 @@
-# UMA2Test
-UMA Char Creation
+# Unity Multipurpose Avatar 
+UMA Character Creation
