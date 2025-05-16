@@ -134,9 +134,9 @@ public class UMACharacterCreationMenu : MonoBehaviour
         InitializeAvatarEvents();
         InitializeWardrobe();
         InitializeSliders();
+        InitializeDefaultValues();
         InitializeFeatures();
         InitializeRaceAndGender();
-        InitializeDefaultValues();
     }
 
     private void InitializeUIButtons()
@@ -217,8 +217,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
 
     private void InitializeDefaultValues()
     {
-        avatar.ChangeRace(manRace[0]);
-        currentRace = manRace[0];
+        avatar.ChangeRace("humanMale");
+        currentRace = avatar.activeRace.data;
 
         currHelmet = 0;
         currHands = 0;
