@@ -41,10 +41,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
     public GameObject WardrobeObj;
 
     [Header("Target Panels / Objects")]
-    public GameObject wardrobeObj;
     public GameObject raceObj;
     public GameObject GenderObj;
-    public GameObject HairColorObj;
     public GameObject EyeObj;
     public GameObject SkinColorObj;
     public GameObject HeightObj;
@@ -55,14 +53,19 @@ public class UMACharacterCreationMenu : MonoBehaviour
     public GameObject BreastSizeCleavageObj;
     public GameObject WeightObj;
 
+    [Header("Wardrobe")]
+    [SerializeField] private UMAWardrobeMenu chestPanel;
+    [SerializeField] private UMAWardrobeMenu handsPanel;
+    [SerializeField] private UMAWardrobeMenu legsPanel;
+    [SerializeField] private UMAWardrobeMenu feetPanel;
+    [SerializeField] private UMAWardrobeMenu underwearPanel;
+    [SerializeField] private UMAWardrobeMenu helmetPanel;
+    [SerializeField] private UMAWardrobeMenu hairPanel;
+
     [Header("Color Picker")]
     public FlexibleColorPicker HairColor;
     public FlexibleColorPicker SkinColor;
     public FlexibleColorPicker EyeColor;
-
-    [Header("Text")]
-    [SerializeField] private Text textHair;
-    [SerializeField] private Text textWardrobe;
 
     [Header("Slider")]
     [SerializeField] private Slider eyeSize;
@@ -74,8 +77,6 @@ public class UMACharacterCreationMenu : MonoBehaviour
     [SerializeField] private Slider weightL;
     [SerializeField] private Slider weightU;
     [SerializeField] private Slider breastS;
-    [SerializeField] private Slider hairType;
-    [SerializeField] private Slider wardrobeSlider;
 
     [Header("Gender")]
     [SerializeField] private Button btnOther;
@@ -106,21 +107,6 @@ public class UMACharacterCreationMenu : MonoBehaviour
     private Dictionary<string, DnaSetter> dna;
     private Dictionary<string, float> defaultDNA = new Dictionary<string, float>();
 
-    //Hair
-    private List<int> availableHair;
-    private int currHair;
-
-    //Wardrobe Properties
-    private List<int> availableWardrobe;
-    private int currWardrobe;
-
-    private int currHelmet;
-    private int currHands;
-    private int currLegs;
-    private int currFeet;
-    private int currUnderwear;
-    private int currChest;
-
     private void OnClickHeight() => OnClickSlider(CharacterFeatureID.Height, HeightObj, normalCam, height);
     private void OnClickBelly() => OnClickSlider(CharacterFeatureID.Belly, BellyObj, normalCam, belly);
     private void OnClickMouthS() => OnClickSlider(CharacterFeatureID.MouthS, MouthSObj, headCam, mouthSize);
@@ -132,11 +118,13 @@ public class UMACharacterCreationMenu : MonoBehaviour
         InitializeUIButtons();
         InitializeDNA();
         InitializeAvatarEvents();
-        InitializeWardrobe();
         InitializeSliders();
+
+        InitializeDefaultValues();
+        InitializeWardrobe();
+
         InitializeFeatures();
         InitializeRaceAndGender();
-        InitializeDefaultValues();
     }
 
     private void InitializeUIButtons()
@@ -144,16 +132,18 @@ public class UMACharacterCreationMenu : MonoBehaviour
         btnDNA.onClick.AddListener(() => {
             DNAObj?.SetActive(true);
             WardrobeObj?.SetActive(false);
-            OnClickrace();
+            OnClickGender();
         });
 
         btnWardrobe.onClick.AddListener(() => {
             DNAObj?.SetActive(false);
             WardrobeObj?.SetActive(true);
-            OnClickWardrobe(CharacterFeatureID.ChestSlot);
+            OnClickWardrobe(chestPanel, normalCam);
         });
 
-        btnRace.onClick.AddListener(OnClickrace);
+        //Too Show Other Race
+        //btnRace.onClick.AddListener(OnClickrace);
+
         btnGender.onClick.AddListener(OnClickGender);
         btnHair.onClick.AddListener(OnClickHair);
         btnEye.onClick.AddListener(OnClickEye);
@@ -166,12 +156,12 @@ public class UMACharacterCreationMenu : MonoBehaviour
         btnBreast.onClick.AddListener(OnClickBreastSizeCleavage);
         btnWeight.onClick.AddListener(OnClickWeight);
 
-        btnHelmet.onClick.AddListener(() => OnClickWardrobe(CharacterFeatureID.HelmetSlot));
-        btnHands.onClick.AddListener(() => OnClickWardrobe(CharacterFeatureID.HandsSlot));
-        btnChest.onClick.AddListener(() => OnClickWardrobe(CharacterFeatureID.ChestSlot));
-        btnLegs.onClick.AddListener(() => OnClickWardrobe(CharacterFeatureID.LegsSlot));
-        btnFeet.onClick.AddListener(() => OnClickWardrobe(CharacterFeatureID.FeetSlot));
-        btnUnderwear.onClick.AddListener(() => OnClickWardrobe(CharacterFeatureID.Underwear));
+        btnHelmet.onClick.AddListener(() => OnClickWardrobe(helmetPanel, headCam));
+        btnHands.onClick.AddListener(() => OnClickWardrobe(handsPanel, normalCam));
+        btnChest.onClick.AddListener(() => OnClickWardrobe(chestPanel, normalCam));
+        btnLegs.onClick.AddListener(() => OnClickWardrobe(legsPanel, normalCam));
+        btnFeet.onClick.AddListener(() => OnClickWardrobe(feetPanel, normalCam));
+        btnUnderwear.onClick.AddListener(() => OnClickWardrobe(underwearPanel, normalCam));
     }
 
     private void InitializeDNA()
@@ -187,7 +177,21 @@ public class UMACharacterCreationMenu : MonoBehaviour
 
     private void InitializeWardrobe()
     {
-        InitWardrobe();
+        var wardrobeAssets = UMAAssetIndexer.Instance.GetAllAssets<UMAWardrobeRecipe>();
+
+        foreach (var wardrobe in wardrobeAssets)
+        {
+            allWardrobes.Add(wardrobe);
+            //  Debug.Log("Found wardrobe: " + wardrobe.name);
+        }
+
+        InitWardrobe(chestPanel, CharacterFeatureID.ChestSlot);
+        InitWardrobe(legsPanel, CharacterFeatureID.LegsSlot);
+        InitWardrobe(feetPanel, CharacterFeatureID.FeetSlot);
+        InitWardrobe(underwearPanel, CharacterFeatureID.Underwear);
+        InitWardrobe(helmetPanel, CharacterFeatureID.HelmetSlot);
+        InitWardrobe(handsPanel, CharacterFeatureID.HandsSlot);
+        InitWardrobe(hairPanel, CharacterFeatureID.HairSlot);
     }
 
     private void InitializeSliders()
@@ -203,29 +207,24 @@ public class UMACharacterCreationMenu : MonoBehaviour
 
     private void InitializeFeatures()
     {
-        currHair = 0;
         InitEye();
         InitSkin();
-        InitHair();
     }
 
     private void InitializeRaceAndGender()
     {
         InitGenderrace();
         OnClickrace();
+        OnClickGender();
     }
 
     private void InitializeDefaultValues()
     {
-        avatar.ChangeRace(manRace[0]);
-        currentRace = manRace[0];
+        avatar.ChangeRace("humanMale");
+        currentRace = avatar.activeRace.data;
 
-        currHelmet = 0;
-        currHands = 0;
-        currLegs = 0;
-        currFeet = 0;
-        currUnderwear = 0;
-        currChest = 0;
+        avatar.characterColors.GetColor(CharacterFeatureID.HairColor, out Color outputCol);
+        HairColor.SetColor(outputCol);
     }
 
     private void Update()
@@ -244,11 +243,18 @@ public class UMACharacterCreationMenu : MonoBehaviour
 
     private void DeactivateAll()
     {
-        wardrobeObj?.SetActive(false);
+        chestPanel.SetActive(false);
+        underwearPanel.SetActive(false);
+        handsPanel.SetActive(false);
+        legsPanel.SetActive(false);
+        feetPanel.SetActive(false);
+        helmetPanel.SetActive(false);
 
         raceObj?.SetActive(false);
         GenderObj?.SetActive(false);
-        HairColorObj?.SetActive(false);
+        
+        hairPanel.SetActive(false);
+
         SkinColorObj?.SetActive(false);
         HeightObj?.SetActive(false);
         BellyObj?.SetActive(false);
@@ -309,139 +315,25 @@ public class UMACharacterCreationMenu : MonoBehaviour
     #endregion
 
     #region Wardrobe
-    private void InitWardrobe()
-    {
-        var wardrobeAssets = UMAAssetIndexer.Instance.GetAllAssets<UMAWardrobeRecipe>();
-
-        foreach (var wardrobe in wardrobeAssets)
-        {
-            allWardrobes.Add(wardrobe);
-            //  Debug.Log("Found wardrobe: " + wardrobe.name);
-        }
-    }
-    private void OnClickWardrobe(string _slot)
+    private void OnClickWardrobe(UMAWardrobeMenu _wardrobeObj, Transform _cam)
     {
         DeactivateAll();
-        wardrobeObj?.SetActive(true);
-        currCam.position = normalCam.position;
-
-        InitWardrobe(_slot);
+        _wardrobeObj.SetActive(true);
+        currCam.position = _cam.position;
     }
-    private void InitWardrobe(string _slot)
+    private void InitWardrobe(UMAWardrobeMenu _wardrobeObj, string _slot)
     {
-        wardrobeSlider.minValue = 0;
-        wardrobeSlider.onValueChanged.RemoveAllListeners();
-        availableWardrobe?.Clear();
-
-        availableWardrobe = new();
-
-        for (int i = 0; i < allWardrobes.Count; i++)
-        {
-            if (allWardrobes[i].wardrobeSlot.Equals(_slot) && allWardrobes[i].compatibleRaces.Contains(currentRace.raceName))
+        _wardrobeObj.InitWardrobe(avatar, _slot, (_slot ,_raceName) => {
+            List<UMAWardrobeRecipe> cloths = new();
+            for (int i = 0; i < allWardrobes.Count; i++)
             {
-                availableWardrobe.Add(i);
-            }
-        }
-
-        if (availableWardrobe.Count > 0)
-        {
-            wardrobeSlider.gameObject.SetActive(true);
-            wardrobeSlider.maxValue = availableWardrobe.Count;
-        }
-        else wardrobeSlider.gameObject.SetActive(false);
-
-        switch (_slot)
-        {
-            case CharacterFeatureID.HelmetSlot:
-                currWardrobe = currHelmet;
-                wardrobeSlider.value = currWardrobe;
-                break;
-            case CharacterFeatureID.HandsSlot:
-                currWardrobe = currHands;
-                wardrobeSlider.value = currWardrobe;
-                break;
-            case CharacterFeatureID.ChestSlot:
-                currWardrobe = currChest;
-                wardrobeSlider.value = currWardrobe;
-                break;
-            case CharacterFeatureID.LegsSlot:
-                currWardrobe = currLegs;
-                wardrobeSlider.value = currWardrobe;
-                break;
-            case CharacterFeatureID.FeetSlot:
-                currWardrobe = currFeet;
-                wardrobeSlider.value = currWardrobe;
-                break;
-            case CharacterFeatureID.Underwear:
-                currWardrobe = currUnderwear;
-                wardrobeSlider.value = currWardrobe;
-                break;
-        }
-
-
-        int temp = currWardrobe - 1;
-        if (currWardrobe == 0)
-        {
-            textWardrobe.text = "None";
-        }
-        else
-        {
-            if (allWardrobes[availableWardrobe[temp]].DisplayValue.Equals(""))
-            {
-                textWardrobe.text = allWardrobes[availableWardrobe[temp]].name;
-            }
-            else textWardrobe.text = allWardrobes[availableWardrobe[temp]].DisplayValue;
-        }
-
-        wardrobeSlider.onValueChanged.AddListener((x) => {
-            currWardrobe = Mathf.RoundToInt(x);
-            if (availableWardrobe.Count <= 0)
-            {
-                return;
-            }
-
-            switch (_slot)
-            {
-                case CharacterFeatureID.HelmetSlot:
-                    currHelmet = currWardrobe;
-                    break;
-                case CharacterFeatureID.HandsSlot:
-                    currHands = currWardrobe;
-                    break;
-                case CharacterFeatureID.ChestSlot:
-                    currChest = currWardrobe;
-                    break;
-                case CharacterFeatureID.LegsSlot:
-                    currLegs = currWardrobe;
-                    break;
-                case CharacterFeatureID.FeetSlot:
-                    currFeet = currWardrobe;
-                    break;
-                case CharacterFeatureID.Underwear:
-                    currUnderwear = currWardrobe;
-                    break;
-            }
-
-
-            int temp = currWardrobe - 1;
-            if (currWardrobe == 0)
-            {
-                avatar.ClearSlot(_slot);
-                textWardrobe.text = "None";
-            }
-            else
-            {
-                if (allWardrobes[availableWardrobe[temp]].DisplayValue.Equals(""))
+                if (allWardrobes[i].wardrobeSlot.Equals(_slot) && allWardrobes[i].compatibleRaces.Contains(_raceName))
                 {
-                    textWardrobe.text = allWardrobes[availableWardrobe[temp]].name;
+                    cloths.Add(allWardrobes[i]);
                 }
-                else textWardrobe.text = allWardrobes[availableWardrobe[temp]].DisplayValue;
-
-                avatar.SetSlot(allWardrobes[availableWardrobe[temp]]);
             }
-            avatar.BuildCharacter();
+            return cloths;
         });
-
     }
     #endregion
 
@@ -449,35 +341,14 @@ public class UMACharacterCreationMenu : MonoBehaviour
     private void InitGenderrace()
     {
         genderType = 0;
-
-        //0male 1female 2other
-
         btnMan.onClick.AddListener(() => {
-            //if (genderType > 1)
-            //{
-            //    genderType = 0;
-            //    ChangeRace(manRace[0].name);
-            //    return;
-            //}
             genderType = Enums.GenderType.MALE;
-            //string replacedGender = ReplaceGender(currentRace.name);
-            ChangeRace(manRace[0].name);
+            ChangeRace("HumanMale");
         });
         btnWoman.onClick.AddListener(() => {
-            //if (genderType > 1)
-            //{
-            //    genderType = 1;
-            //    ChangeRace(womanRace[0].name);
-            //    return;
-            //}
             genderType = Enums.GenderType.FEMALE;
-            //string replacedGender = ReplaceGender(currentRace.name);
-            ChangeRace(womanRace[0].name);
+            ChangeRace("HumanFemale");
         });
-        //btnOther.onClick.AddListener(() => {
-        //    genderType = 2;
-        //    if (otherRace.Count > 0) ChangeRace(otherRace[0].name);
-        //});
     }
     private void OnClickrace()
     {
@@ -518,7 +389,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
 
             if (matchedRace == null)
             {
-                string lowerName = item.name.ToLower();
+                string lowerName = item.raceName.ToLower();
                 matchedRace = item;
 
                 if (lowerName.Contains("female") || lowerName.Contains("girl"))
@@ -546,7 +417,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
             Button btn = newBtnObj.GetComponent<Button>();
             Text btnText = newBtnObj.GetComponentInChildren<Text>();
 
-            string raceNameCopy = matchedRace.name;
+            string raceNameCopy = matchedRace.raceName;
             btn.name = raceNameCopy;
             btnText.text = raceNameCopy;
 
@@ -554,26 +425,12 @@ public class UMACharacterCreationMenu : MonoBehaviour
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(() =>
             {
-                //RaceData raceToUse = null;
-                //string nameCheck = raceNameCopy.ToLower();
-
-                //if (nameCheck.Contains("female") || nameCheck.Contains("girl"))
-                //    raceToUse = womanRace.Find(r => r.name == raceNameCopy);
-                //else if (nameCheck.Contains("male") || nameCheck.Contains("boy"))
-                //    raceToUse = manRace.Find(r => r.name == raceNameCopy);
-                //else
-                //    raceToUse = otherRace.Find(r => r.name == raceNameCopy);
-
-                //if (raceToUse != null)
-                //{
-                //    dCA.ChangeRace(raceToUse);
-                //    currentRace = raceToUse;
-                //}
                 ChangeRace(raceNameCopy);
             });
         }
 
-        raceObj?.SetActive(true);
+        //To Show Other Race
+        //raceObj?.SetActive(true);
     }
 
     private void ChangeRace(string _raceName)
@@ -582,11 +439,11 @@ public class UMACharacterCreationMenu : MonoBehaviour
         string nameCheck = _raceName.ToLower();
 
         if (nameCheck.Contains("female") || nameCheck.Contains("girl"))
-            raceToUse = womanRace.Find(r => r.name == _raceName);
+            raceToUse = womanRace.Find(r => r.raceName == _raceName);
         else if (nameCheck.Contains("male") || nameCheck.Contains("boy"))
-            raceToUse = manRace.Find(r => r.name == _raceName);
+            raceToUse = manRace.Find(r => r.raceName == _raceName);
         else
-            raceToUse = otherRace.Find(r => r.name == _raceName);
+            raceToUse = otherRace.Find(r => r.raceName == _raceName);
 
         avatar.ClearSlot(CharacterFeatureID.HelmetSlot);
         avatar.ClearSlot(CharacterFeatureID.HandsSlot);
@@ -602,7 +459,6 @@ public class UMACharacterCreationMenu : MonoBehaviour
         }
 
         avatar.ClearSlot(CharacterFeatureID.HairSlot);
-        currHair = 0;
 
         ResetDNA();
     }
@@ -648,80 +504,10 @@ public class UMACharacterCreationMenu : MonoBehaviour
     #region Hair
     private void OnClickHair()
     {
-        DeactivateAll();
-        HairColorObj?.SetActive(true);
-        currCam.position = headCam.position;
-
-        InitHair();
-    }
-    private void InitHair()
-    {
         avatar.characterColors.GetColor(CharacterFeatureID.HairColor, out Color outputCol);
         HairColor.SetColor(outputCol);
 
-        hairType.minValue = 0;
-        hairType.onValueChanged.RemoveAllListeners();
-        availableHair?.Clear();
-
-        availableHair = new();
-
-        for (int i = 0; i < allWardrobes.Count; i++)
-        {
-            if (allWardrobes[i].wardrobeSlot.Equals(CharacterFeatureID.HairSlot) && allWardrobes[i].compatibleRaces.Contains(currentRace.raceName))
-            {
-                availableHair.Add(i);
-            }
-        }
-
-        if (availableHair.Count > 0)
-        {
-            hairType.gameObject.SetActive(true);
-            hairType.maxValue = availableHair.Count;
-        }
-        else hairType.gameObject.SetActive(false);
-
-        hairType.value = currHair;
-
-        int temp = currHair - 1;
-        if (currHair == 0)
-        {
-            textHair.text = "None";
-        }
-        else
-        {
-            if (allWardrobes[availableHair[temp]].DisplayValue.Equals(""))
-            {
-                textHair.text = allWardrobes[availableHair[temp]].name;
-            }
-            else textHair.text = allWardrobes[availableHair[temp]].DisplayValue;
-        }
-
-        hairType.onValueChanged.AddListener((x) => {
-            currHair = Mathf.RoundToInt(x);
-            if (availableHair.Count <= 0)
-            {
-                return;
-            }
-
-            int temp = currHair - 1;
-            if (currHair == 0)
-            {
-                avatar.ClearSlot(CharacterFeatureID.HairSlot);
-                textHair.text = "None";
-            }
-            else
-            {
-                if (allWardrobes[availableHair[temp]].DisplayValue.Equals(""))
-                {
-                    textHair.text = allWardrobes[availableHair[temp]].name;
-                }
-                else textHair.text = allWardrobes[availableHair[temp]].DisplayValue;
-
-                avatar.SetSlot(allWardrobes[availableHair[temp]]);
-            }
-            avatar.BuildCharacter();
-        });
-
+        OnClickWardrobe(hairPanel, headCam);
     }
     #endregion
 
