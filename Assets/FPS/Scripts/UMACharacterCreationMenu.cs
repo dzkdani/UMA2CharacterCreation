@@ -144,7 +144,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
         btnDNA.onClick.AddListener(() => {
             DNAObj?.SetActive(true);
             WardrobeObj?.SetActive(false);
-            OnClickrace();
+            OnClickRace();
         });
 
         btnWardrobe.onClick.AddListener(() => {
@@ -153,7 +153,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
             OnClickWardrobe(CharacterFeatureID.ChestSlot);
         });
 
-        btnRace.onClick.AddListener(OnClickrace);
+        btnRace.onClick.AddListener(OnClickRace);
         btnGender.onClick.AddListener(OnClickGender);
         btnHair.onClick.AddListener(OnClickHair);
         btnEye.onClick.AddListener(OnClickEye);
@@ -211,8 +211,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
 
     private void InitializeRaceAndGender()
     {
-        InitGenderrace();
-        OnClickrace();
+        OnClickRace();
+        InitGenderRace();
     }
 
     private void InitializeDefaultValues()
@@ -446,7 +446,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
     #endregion
 
     #region Race & Gender
-    private void InitGenderrace()
+    private void InitGenderRace()
     {
         genderType = 0;
 
@@ -479,7 +479,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
         //    if (otherRace.Count > 0) ChangeRace(otherRace[0].name);
         //});
     }
-    private void OnClickrace()
+    private void OnClickRace()
     {
         DeactivateAll();
 
