@@ -9,6 +9,7 @@ using UMA.CharacterSystem;
 public class UMACharacterCreationMenu : MonoBehaviour
 {
     [SerializeField] private DynamicCharacterAvatar avatar;
+    [SerializeField] private RandomizePreset randomizePreset;
 
     [Header("UI Main Button")]
     public Button btnWardrobe;
@@ -192,11 +193,15 @@ public class UMACharacterCreationMenu : MonoBehaviour
         InitWardrobe(helmetPanel, CharacterFeatureID.HelmetSlot);
         InitWardrobe(handsPanel, CharacterFeatureID.HandsSlot);
         InitWardrobe(hairPanel, CharacterFeatureID.HairSlot);
+
+        randomizePreset.InitRandomizeColor(CharacterFeatureID.HairColor, HairColor.SetColor);
+
+        underwearPanel.UseDefaultCloth();
     }
 
     private void InitializeSliders()
     {
-        InitSlider(CharacterFeatureID.Height, height);
+        InitSlider(CharacterFeatureID.Height, height, 0.4f, 0.6f);
         InitSlider(CharacterFeatureID.Belly, belly);
         InitSlider(CharacterFeatureID.MouthS, mouthSize);
         InitSlider(CharacterFeatureID.LipS, lipsSize);
@@ -334,6 +339,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
             }
             return cloths;
         });
+
+        randomizePreset.InitRandomWardrobe(_wardrobeObj.DirectAssign);
     }
     #endregion
 
@@ -459,6 +466,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
         }
 
         avatar.ClearSlot(CharacterFeatureID.HairSlot);
+        underwearPanel.UseDefaultCloth();
 
         ResetDNA();
     }
@@ -498,6 +506,9 @@ public class UMACharacterCreationMenu : MonoBehaviour
             dna[CharacterFeatureID.EyeSize].Set(x);
             avatar.BuildCharacter();
         });
+
+        randomizePreset.InitRandomizeSlider(CharacterFeatureID.EyeSize, eyeSize);
+        randomizePreset.InitRandomizeColor(CharacterFeatureID.EyeColor, EyeColor.SetColor);
     }
     #endregion
 
@@ -525,6 +536,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
     {
         avatar.characterColors.GetColor(CharacterFeatureID.SkinColor, out Color outputCol);
         SkinColor.SetColor(outputCol);
+
+        randomizePreset.InitRandomizeColor(CharacterFeatureID.SkinColor, SkinColor.SetColor);
     }
     #endregion
 
@@ -558,17 +571,19 @@ public class UMACharacterCreationMenu : MonoBehaviour
     }
     #endregion
 
-    #region Slider
-    private void InitSlider(string _name, Slider _slider)
+    #region Other Slider
+    private void InitSlider(string _name, Slider _slider, float _min=0, float _max =1)
     {
-        _slider.minValue = 0;
-        _slider.maxValue = 1;
+        _slider.minValue = _min;
+        _slider.maxValue =_max;
 
         _slider.value = dna[_name].Get();
         _slider.onValueChanged.AddListener((x) => {
             dna[_name].Set(x);
             avatar.BuildCharacter();
         });
+
+        randomizePreset.InitRandomizeSlider(_name, _slider);
     }
 
     private void OnClickSlider(string _name, GameObject _panel, Transform _target, Slider _slider)

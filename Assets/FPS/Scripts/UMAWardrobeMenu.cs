@@ -18,6 +18,10 @@ public class UMAWardrobeMenu : MonoBehaviour
     [SerializeField] private Sprite noIcon;
     [SerializeField] private Sprite noneIcon;
 
+    [Header("Use Cloths as Default Instead of None (Optional)")]
+    public bool UseClothAsDefault;
+    [SerializeField] private int indexClothDefault;
+
     [Header("Another Panel (Optional)")]
     [SerializeField] private Toggle switchPanel;
     [SerializeField] private Transform mainPanel;
@@ -47,6 +51,8 @@ public class UMAWardrobeMenu : MonoBehaviour
     {
         
     }
+
+
 
     public void InitWardrobe(DynamicCharacterAvatar _avatar, string _slot, Func<string, string, List<UMAWardrobeRecipe>> _getCloths)
     {
@@ -82,11 +88,14 @@ public class UMAWardrobeMenu : MonoBehaviour
             for (int i = 0; i < buttons.Count; i++)
             {
                 int index = i;
-                if (i>= clothsTaken.Count)
+                if (i >= clothsTaken.Count)
                 {
                     DisableButton(index);
                 }
-                else CreateButton(index);
+                else
+                {
+                    CreateButton(index);
+                }
             }
         }
         else
@@ -147,6 +156,13 @@ public class UMAWardrobeMenu : MonoBehaviour
         {
             newButton = buttons[0];
             newButton.onClick.RemoveAllListeners();
+
+            if (UseClothAsDefault)
+            {
+                buttons[0].gameObject.SetActive(false);
+                return;
+            }
+
             newButton.gameObject.SetActive(true);
             newButton.onClick.AddListener(() => {
                 currWardrobe = 0;
@@ -159,12 +175,20 @@ public class UMAWardrobeMenu : MonoBehaviour
         catch
         {
             newButton = Instantiate(prefabButton, Content).GetComponent<Button>();
-            newButton.onClick.AddListener(() => {
-                currWardrobe = 0;
-                avatar.ClearSlot(currSlot);
-                textWardrobe.text = "None";
-                avatar.BuildCharacter();
-            });
+
+            if (UseClothAsDefault)
+            {
+                newButton.gameObject.SetActive(false);
+            }
+            else
+            {
+                newButton.onClick.AddListener(() => {
+                    currWardrobe = 0;
+                    avatar.ClearSlot(currSlot);
+                    textWardrobe.text = "None";
+                    avatar.BuildCharacter();
+                });
+            }
 
             buttons.Add(newButton);
         }
@@ -205,6 +229,36 @@ public class UMAWardrobeMenu : MonoBehaviour
 
         gameObject.SetActive(_active);
     }
+
+    public void DirectAssign(Func<int, int> _trueIndex)
+    {
+        if (clothsTaken.Count <= 0) return;
+
+        if (!currRace.Equals(avatar.activeRace.racedata.raceName))
+        {
+            InitWardrobe();
+        }
+
+        int trueIndex = _trueIndex.Invoke(clothsTaken.Count);
+
+        OnClickOneRecipe(trueIndex);
+    }
+
+    #region Use Cloth As Default
+    public void UseDefaultCloth()
+    {
+        if (!UseClothAsDefault) return;
+
+        if (clothsTaken.Count <= indexClothDefault) return;
+
+        if (!currRace.Equals(avatar.activeRace.racedata.raceName))
+        {
+            InitWardrobe();
+        }
+
+        OnClickOneRecipe(indexClothDefault);
+    }
+    #endregion
 
     #region AnotherPanel
     private void OnValueChangeSwitch(bool _isOn)
