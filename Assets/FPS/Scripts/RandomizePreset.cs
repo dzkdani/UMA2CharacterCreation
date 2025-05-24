@@ -16,6 +16,7 @@ public class RandomizePreset : MonoBehaviour
     [SerializeField] private SharedColorTable eyeColor;
     [SerializeField] private SharedColorTable hairColor;
     [SerializeField] private SharedColorTable skinColor;
+    [SerializeField] private SharedColorTable lipColor;
 
     [Header("Limiter (Optional)")]
     [SerializeField] private List<RandomizeLimiter> limiters;
@@ -55,6 +56,12 @@ public class RandomizePreset : MonoBehaviour
                 button.onClick.AddListener(() => {
                     int index = Random.Range(0, skinColor.colors.Length);
                     _changeColor.Invoke(skinColor.colors[index].color);
+                });
+                break;
+            case CharacterFeatureID.LipsColor:
+                button.onClick.AddListener(() => {
+                    int index = Random.Range(0, lipColor.colors.Length);
+                    _changeColor.Invoke(lipColor.colors[index].color);
                 });
                 break;
         }

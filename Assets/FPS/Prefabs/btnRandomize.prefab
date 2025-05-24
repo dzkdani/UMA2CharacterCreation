@@ -217,6 +217,7 @@ MonoBehaviour:
   eyeColor: {fileID: 11400000, guid: 40e5f112cad2f64438393fe518da506d, type: 2}
   hairColor: {fileID: 11400000, guid: b3b6cfa4c2da1004cb1e49feb8144d30, type: 2}
   skinColor: {fileID: 11400000, guid: 1142620b746698b42a5bb3392ee7c732, type: 2}
+  lipColor: {fileID: 11400000, guid: 417b3ac9bd69ad548b531c3aa25adac8, type: 2}
   limiters:
   - Name: eyeSize
     MinValue: 0.4

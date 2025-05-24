@@ -4,6 +4,7 @@ public class CharacterFeatureID
     public const string EyeColor = "Eyes";
     public const string SkinColor = "Skin";
     public const string HairColor = "Hair";
+    public const string LipsColor = "Lipstick";
 
     public const string HairSlot = "Hair";
     public const string HelmetSlot = "Helmet";

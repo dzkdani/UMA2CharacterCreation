@@ -14,11 +14,11 @@ public class SerializedToPrefab : MonoBehaviour
     [SerializeField] private Button button;
 
     [Header("Setting")]
-    [SerializeField] private string prefabName;
+    //[SerializeField] private string prefabName;
     [SerializeField] private DynamicCharacterAvatar baseObject;
-    [SerializeField] private bool UnswizzleNormalMaps = true;
-    [SerializeField] private bool AddStandaloneDNA = true;
-    [SerializeField] private string folderPath;
+    //[SerializeField] private bool UnswizzleNormalMaps = true;
+    //[SerializeField] private bool AddStandaloneDNA = true;
+    //[SerializeField] private string folderPath;
 
     private void Awake()
     {
@@ -42,7 +42,7 @@ public class SerializedToPrefab : MonoBehaviour
     private void MakeASerializedPrefab()
     {
 #if UNITY_EDITOR
-
+        /*
         string folderPath = "Assets/FPS/Output";
         string CharacterName = baseObject.gameObject.name + "_Prefab.prefab";
 
@@ -78,7 +78,12 @@ public class SerializedToPrefab : MonoBehaviour
                 Debug.Log("Prefab Name cannot be empty");
             }
         }
+        */
 
+        string umaRecipe = baseObject.GetCurrentRecipe();
+        PlayerPrefs.SetString("SavedUMA", umaRecipe);
+        PlayerPrefs.Save();
+        Debug.Log("Done Save");
 #else
         Debug.LogWarning("MakeASerializedPrefab called outside of the editor.");
 #endif

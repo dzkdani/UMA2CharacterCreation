@@ -67,6 +67,7 @@ public class UMACharacterCreationMenu : MonoBehaviour
     public FlexibleColorPicker HairColor;
     public FlexibleColorPicker SkinColor;
     public FlexibleColorPicker EyeColor;
+    public FlexibleColorPicker LipsColor;
 
     [Header("Slider")]
     [SerializeField] private Slider eyeSize;
@@ -111,7 +112,6 @@ public class UMACharacterCreationMenu : MonoBehaviour
     private void OnClickHeight() => OnClickSlider(CharacterFeatureID.Height, HeightObj, normalCam, height);
     private void OnClickBelly() => OnClickSlider(CharacterFeatureID.Belly, BellyObj, normalCam, belly);
     private void OnClickMouthS() => OnClickSlider(CharacterFeatureID.MouthS, MouthSObj, headCam, mouthSize);
-    private void OnClickLipS() => OnClickSlider(CharacterFeatureID.LipS, LipSObj, headCam, lipsSize);
     private void OnClickButt() => OnClickSlider(CharacterFeatureID.Butt, ButtObj, normalCam, gluteusSize);
 
     private void Start()
@@ -204,8 +204,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
         InitSlider(CharacterFeatureID.Height, height, 0.4f, 0.6f);
         InitSlider(CharacterFeatureID.Belly, belly);
         InitSlider(CharacterFeatureID.MouthS, mouthSize);
-        InitSlider(CharacterFeatureID.LipS, lipsSize);
         InitSlider(CharacterFeatureID.Butt, gluteusSize);
+        InitLips();
         InitBreast();
         InitWeight();
     }
@@ -282,6 +282,8 @@ public class UMACharacterCreationMenu : MonoBehaviour
         avatar.SetColorValue(CharacterFeatureID.HairColor, HairColor.color);
         avatar.SetColorValue(CharacterFeatureID.SkinColor, SkinColor.color);
         avatar.SetColorValue(CharacterFeatureID.EyeColor, EyeColor.color);
+        
+        if(genderType.Equals(Enums.GenderType.FEMALE)) avatar.SetColorValue(CharacterFeatureID.LipsColor, LipsColor.color);
         avatar.UpdateColors(true);
     }
     #endregion
@@ -568,6 +570,42 @@ public class UMACharacterCreationMenu : MonoBehaviour
     private void InitBreast()
     {
         InitSlider(CharacterFeatureID.BoobS, breastS);
+    }
+    #endregion
+
+    #region Lips
+    private void InitLips()
+    {
+        InitSlider(CharacterFeatureID.LipS, lipsSize);
+
+        if (genderType.Equals(Enums.GenderType.FEMALE))
+        {
+            avatar.characterColors.GetColor(CharacterFeatureID.LipsColor, out Color outputCol);
+            LipsColor.SetColor(outputCol);
+            LipsColor.gameObject.SetActive(true);
+        }
+        else LipsColor.gameObject.SetActive(false);
+        randomizePreset.InitRandomizeColor(CharacterFeatureID.LipsColor, LipsColor.SetColor);
+    }
+
+    private void OnClickLipS()
+    {
+        DeactivateAll();
+        LipSObj?.SetActive(true);
+        currCam.position = headCam.position;
+
+        lipsSize.value = dna[CharacterFeatureID.LipS].Get();
+
+        if (genderType.Equals(Enums.GenderType.FEMALE))
+        {
+            avatar.characterColors.GetColor(CharacterFeatureID.LipsColor, out Color outputCol);
+            LipsColor.SetColor(outputCol);
+            LipsColor.gameObject.SetActive(true);
+        }
+        else
+        {
+            LipsColor.gameObject.SetActive(false);
+        }
     }
     #endregion
 
